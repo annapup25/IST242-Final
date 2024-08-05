@@ -62,4 +62,24 @@ public class CarDealershipGUI extends JFrame {
 
     private void listBasePrices() {
     }
+
+    public static void main(String[] args) {
+        //temporary connection to get the file path from user
+        DatabaseConnection tempConnection = new DatabaseConnection("");
+        String DbFile = tempConnection.selectDatabase();
+        //temporary connection closed after file path is recorded
+        tempConnection.close();
+
+        if (DbFile != null) {
+            //then the file path is used to create the usable connection to the database
+            DatabaseConnection dbConnection = new DatabaseConnection(DbFile);
+
+            dbConnection.createConnection();
+
+            //create an instance of the gui using that connection
+            CarDealershipGUI gui = new CarDealershipGUI(dbConnection);
+            //make sure it actually pops up, then the connection should stay until the window is closed
+            gui.setVisible(true);
+        }
+    }
 }

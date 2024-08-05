@@ -9,7 +9,7 @@ import java.util.List;
 
     public class DatabaseConnection {
         private Connection connection;
-        private final String DbFile;
+        private String DbFile;
 
         public DatabaseConnection(String DbFile) {
             this.DbFile = DbFile;
@@ -19,7 +19,7 @@ import java.util.List;
             try {
                 if (connection == null || connection.isClosed()) {
                     connection = DriverManager.getConnection("jdbc:sqlite:" + DbFile);
-                    System.out.println("Connection established");
+                    System.out.println("Connection established to: " + DbFile);
                 }
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
@@ -40,7 +40,7 @@ import java.util.List;
             }
         }
 
-        public static void main(String[] args) {
+        public String selectDatabase(){
             System.out.println("Please wait for the file choosing window to appear.");
             // Create a JFileChooser to let the user select the database file
             JFileChooser fileChooser = new JFileChooser();
@@ -49,44 +49,34 @@ import java.util.List;
 
             if (userSelection == JFileChooser.APPROVE_OPTION) {
                 File dbFile = fileChooser.getSelectedFile();
-                // Create a new instance of DatabaseConnection with the selected file path
-                DatabaseConnection databaseConnection = new DatabaseConnection(dbFile.getAbsolutePath());
+                this.DbFile = dbFile.getAbsolutePath();
                 // Establish the connection
                 try{
-                    databaseConnection.createConnection();
-                }catch (Exception e) {
+                    this.createConnection();
+                }catch (Exception e){
                     System.out.println(e.getMessage());
                 }
-
-                //might want to make some method calls and do operations here
-
-                // Close the connection when done
-                databaseConnection.close();
             } else {
                 JOptionPane.showMessageDialog(null, "No database file selected.");
                 System.exit(0);
             }
+            return this.DbFile;
         }
 
-        //this method could maybe benefit from carModel objects instead of Strings?
-        public List<String> getCarModels(){
-            List<String> carModels = new ArrayList<>();
-            String query = "SELECT * FROM Models";
+        public List<CarModel> getCarModels(){
+            List<CarModel> carModels = new ArrayList<>();
+            String query = "SELECT model_id, model_name, model_base_price, brand_id FROM Models";
 
-            try (Connection connection = createConnection();
-                 Statement statement = connection.createStatement();
+            try (Statement statement = connection.createStatement();
                  ResultSet resultSet = statement.executeQuery(query)){
 
                 while (resultSet.next()) {
                     int modelId = resultSet.getInt("model_id");
                     String modelName = resultSet.getString("model_name");
-                    int basePrice = resultSet.getInt("model_base_price");
+                    int modelBasePrice = resultSet.getInt("model_base_price");
                     int brandId = resultSet.getInt("brand_id");
 
-                    // Format the data as a string
-                    String modelString = String.format("ID: %d, Name: %s, Base Price: %d, Brand ID: %d",
-                            modelId, modelName, basePrice, brandId);
-                    carModels.add(modelString);
+                    carModels.add(new CarModel(modelId, modelName, modelBasePrice, brandId));
                 }
             } catch (SQLException e) {
                 System.out.println("Error fetching models: " + e.getMessage());
@@ -95,5 +85,78 @@ import java.util.List;
             return carModels;
         }
 
-        //will write more soon.
+        public List<Dealer> getDealers() {
+            List<Dealer> dealers = new ArrayList<>();
+            String query = "SELECT dealer_id, dealer_name FROM Dealer";
+
+            try(Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(query)){
+
+                while (rs.next()) {
+                    int dealerId = rs.getInt("dealer_id");
+                    String dealerName = rs.getString("dealer_name");
+
+                    dealers.add(new Dealer(dealerId, dealerName));
+                }
+            }catch (SQLException e){
+                System.out.println("Error getting dealers: "  + e.getMessage());
+            }
+
+            return dealers;
+        }
+
+        public List<Object[]> getBrands(){
+            List<Object[]> brands = new ArrayList<>();
+            String query = "SELECT brand_id, brand_name FROM Brands";
+
+            try(Statement statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query)){
+                while (rs.next()) {
+                    int brandId = rs.getInt("brand_id");
+                    String brandName = rs.getString("brand_name");
+
+                    brands.add(new Object[]{brandId, brandName});
+                }
+            }catch (SQLException e){
+                System.out.println("Error getting brands: "  + e.getMessage());
+            }
+            return brands;
+        }
+
+        public List<Object[]> getDealerBrands(){
+            List<Object[]> dealerBrands = new ArrayList<>();
+            String query = "SELECT brand_id, brand_id FROM DealerBrands";
+
+            try(Statement statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query)){
+                while (rs.next()) {
+                    int brandId = rs.getInt("brand_id");
+                    int dealerId = rs.getInt("dealer_id");
+
+                    dealerBrands.add(new Object[]{brandId, dealerId});
+                }
+            }catch (SQLException e){
+                System.out.println("Error getting Dealer_Brands: "  + e.getMessage());
+            }
+            return dealerBrands;
+        }
+
+        public List<Object[]> getCarOptions(){
+            List<Object[]> carOptions = new ArrayList<>();
+            String query = "SELECT option_set_id, model_id, color FROM Car_Options";
+
+            try(Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(query)){
+                while (rs.next()) {
+                    int optionSetId = rs.getInt("option_set_id");
+                    int modelId = rs.getInt("model_id");
+                    String color = rs.getString("color");
+
+                    carOptions.add(new Object[]{optionSetId, modelId, color});
+                }
+            }catch (SQLException e){
+                System.out.println("Error getting Car_Options: "  + e.getMessage());
+            }
+            return carOptions;
+        }
     }

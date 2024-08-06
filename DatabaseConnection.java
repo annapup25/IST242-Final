@@ -133,8 +133,8 @@ import java.util.List;
             public List<Dealer> getDealers() {
                 // Create an arraylist of dealer objects
                 List<Dealer> dealers = new ArrayList<>();
-                // Formulate a query to select what is needed from the Dealer table in the database
-                String query = "SELECT dealer_id, dealer_name FROM Dealer";
+                // Formulate a query to select what is needed from the Dealers table in the database
+                String query = "SELECT dealer_id, dealer_name FROM Dealers";
 
                 // Try to execute the query, statement contacts the database and result set executes and stores the information.
                 try (Statement statement = connection.createStatement();
@@ -187,7 +187,7 @@ import java.util.List;
                 // Create a new array list of dealerBrands objects
                 List<Object[]> dealerBrands = new ArrayList<>();
                 // Query selects the brandId and dealerId from the DealerBrands table
-                String query = "SELECT brand_id, dealer_id FROM DealerBrands";
+                String query = "SELECT brand_id, dealer_id FROM Dealer_Brand";
 
                 try (Statement statement = connection.createStatement();
                      ResultSet rs = statement.executeQuery(query)) {

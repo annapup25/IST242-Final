@@ -66,20 +66,33 @@ public class CarDealershipGUI extends JFrame {
     public static void main(String[] args) {
         //temporary connection to get the file path from user
         DatabaseConnection tempConnection = new DatabaseConnection("");
+        //The path for the selected database is held here, for later use.
         String DbFile = tempConnection.selectDatabase();
         //temporary connection closed after file path is recorded
         tempConnection.close();
 
+        //As long as a file has been chosen
         if (DbFile != null) {
-            //then the file path is used to create the usable connection to the database
-            DatabaseConnection dbConnection = new DatabaseConnection(DbFile);
-
-            dbConnection.createConnection();
-
-            //create an instance of the gui using that connection
-            CarDealershipGUI gui = new CarDealershipGUI(dbConnection);
-            //make sure it actually pops up, then the connection should stay until the window is closed
+            //create a new instance of the gui, calling the getCarDealershipGUI method
+            CarDealershipGUI gui = getCarDealershipGUI(DbFile);
+            // Make sure it actually pops up, then the connection should stay until the window is closed
             gui.setVisible(true);
         }
+    }
+
+    // getCarDealershipGUI takes DbFile as a parameter and returns an instance of CarDealershipGUI
+    private static CarDealershipGUI getCarDealershipGUI(String DbFile) {
+        // The file path is used to create the usable connection to the database
+        DatabaseConnection dbConnection = new DatabaseConnection(DbFile);
+
+        // New instance of DatabaseConnection calls createConnection method to establish a connection
+        dbConnection.createConnection();
+
+        // Create an instance of the databaseOperations inner class for this connection.
+        DatabaseConnection.DatabaseOperations databaseOperations = dbConnection.getDatabaseOperations();
+
+        // Create an instance of the gui using that connection
+        CarDealershipGUI gui = new CarDealershipGUI(dbConnection);
+        return gui;
     }
 }

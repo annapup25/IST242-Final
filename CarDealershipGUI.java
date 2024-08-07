@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -35,24 +36,17 @@ public class CarDealershipGUI extends JFrame {
         JButton btnBrandsByDealer = new JButton("List Brands by Dealer");
         JButton btnBasePrices = new JButton("List Base Prices");
 
-        // Attach action listeners to the buttons
-        btnModelsByColor.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                listModelsByColor(); // Call method to list car models by color
-            }
-        });
+        ButtonHandler action = new ButtonHandler();
 
-        btnBrandsByDealer.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                listBrandsByDealer(); // Call method to list brands by dealer
-            }
-        });
 
-        btnBasePrices.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                listBasePrices(); // Call method to list base prices of car models
-            }
-        });
+        // Attach listeners to the buttons
+        btnModelsByColor.addActionListener(action);
+
+
+
+        btnBrandsByDealer.addActionListener(action);
+
+        btnBasePrices.addActionListener(action);
 
         // Add the buttons to the panel
         panel.add(btnModelsByColor);
@@ -63,87 +57,161 @@ public class CarDealershipGUI extends JFrame {
         add(panel, BorderLayout.NORTH);
     }
 
+    // Inner class to handle the operation happening when clicked
+    private class ButtonHandler implements ActionListener {
+
+        public void actionPerformed(ActionEvent e)
+        {
+            String action = e.getActionCommand();
+            switch (action)
+            {
+                case "List Models by Color":
+                    listModelsByColor();
+                    break;
+                case "List Brands by Dealer":
+                    listBrandsByDealer();
+                    break;
+                case "List Base Prices":
+                    listBasePrices();
+                    break;
+
+            }
+        }
+
+    }
+
     // Method to list car models by their color
-    private void listModelsByColor() {
-        // Get database operations object
-        DatabaseConnection.DatabaseOperations operations = dbConnection.getDatabaseOperations();
-        // Fetch car models and their options from the database
-        List<CarModel> carModels = operations.getCarModels();
-        List<Object[]> carOptions = operations.getCarOptions();
-        StringBuilder result = new StringBuilder(); // StringBuilder to accumulate the results
+    private void listModelsByColor()
+    {
+        String[] colorsOfInterest = {"red", "green", "blue", "yellow"};
 
-        // Create a map to store model IDs and their corresponding colors
-        Map<Integer, String> modelColorMap = new HashMap<>();
 
-        // Fill the map with model IDs and colors from carOptions
+        // Retrieve data from the database
+        List<CarModel> carModels = dbConnection.getDatabaseOperations().getCarModels();
+        List<Object[]> carOptions = dbConnection.getDatabaseOperations().getCarOptions();
+
+        // Arrays that are used to connect the colors of interest to the proper indexes
+        List[] colorLists;
+        colorLists = new List[colorsOfInterest.length];
+        for (int i = 0; i < colorLists.length; i++) {
+            colorLists[i] = new ArrayList<>();
+        }
+
+        // Arrays used to store both model names and model IDs
+        String[] modelNames = new String[carModels.size()];
+        int[] modelIds = new int[carModels.size()];
+
+        // Arrays are populated with model information
+        for (int i = 0; i < carModels.size(); i++) {
+            CarModel model = carModels.get(i);
+            modelIds[i] = model.getModelId();
+            modelNames[i] = model.getModelName();
+        }
+
+        // Car options are processes, as well as the cars are grouped by color
         for (Object[] option : carOptions) {
             int modelId = (int) option[1];
-            String color = (String) option[2];
-            modelColorMap.put(modelId, color);
-        }
+            String color = ((String) option[2]).toLowerCase();
 
-        // Loop through car models and append models with the desired colors to the result
-        for (CarModel model : carModels) {
-            String color = modelColorMap.get(model.getModelId());
-            if (color != null && (color.equalsIgnoreCase("Red") || color.equalsIgnoreCase("Green") ||
-                    color.equalsIgnoreCase("Blue") || color.equalsIgnoreCase("Yellow"))) {
-                result.append(model.getModelName()).append(" - ").append(color).append("\n");
-            }
-        }
+            // Thw index for the color is found
+            int colorIndex = -1;
+            for (int i = 0; i < colorsOfInterest.length; i++) {
+                if (color.equals(colorsOfInterest[i])) {
+                    colorIndex = i;
 
-        // Display the results in the text area
-        textArea.setText(result.toString());
-    }
-
-    // Method to list brands available at each dealer
-    private void listBrandsByDealer() {
-        // Get database operations object
-        DatabaseConnection.DatabaseOperations operations = dbConnection.getDatabaseOperations();
-        // Fetch dealers, dealer-brand relationships, and brand information from the database
-        List<Dealer> dealers = operations.getDealers();
-        List<Object[]> dealerBrands = operations.getDealerBrands();
-        List<Object[]> brands = operations.getBrands();
-        StringBuilder result = new StringBuilder(); // StringBuilder to accumulate the results
-
-        // Create a map for quick lookup of brand names by brand_id
-        Map<Integer, String> brandMap = new HashMap<>();
-        for (Object[] brand : brands) {
-            brandMap.put((int) brand[0], (String) brand[1]);
-        }
-
-        // For each dealer, list the brands they carry
-        for (Dealer dealer : dealers) {
-            result.append(dealer.getDealerName()).append(": ");
-            for (Object[] dealerBrand : dealerBrands) {
-                if ((int) dealerBrand[1] == dealer.getDealerId()) {
-                    String brandName = brandMap.get((int) dealerBrand[0]);
-                    result.append(brandName).append(", ");
                 }
             }
-            // Remove trailing comma and space, then append a newline
-            result.setLength(result.length() - 2);
-            result.append("\n");
+
+            if (colorIndex != -1) {
+                // Model name is found with the model ID
+                String modelName = null;
+                for (int i = 0; i < modelIds.length; i++) {
+                    if (modelIds[i] == modelId) {
+                        modelName = modelNames[i];
+
+                    }
+                }
+
+                if (modelName != null) {
+                    // The model name and color are formatted into the correct color list
+                    String first = color.substring(0,1).toUpperCase();
+                    String rest = color.substring(1);
+                    colorLists[colorIndex].add(modelName + " - " + first+rest);
+                }
+            }
         }
 
-        // Display the results in the text area
-        textArea.setText(result.toString());
+        // Results are displayed
+        for (int i = 0; i < colorsOfInterest.length; i++) {
+            for (Object modelInfo : colorLists[i]) {
+                textArea.append(modelInfo + "\n");
+            }
+        }
     }
 
-    // Method to list the base prices of car models
-    private void listBasePrices() {
-        // Get database operations object
-        DatabaseConnection.DatabaseOperations operations = dbConnection.getDatabaseOperations();
-        // Fetch car models from the database
-        List<CarModel> carModels = operations.getCarModels();
-        StringBuilder result = new StringBuilder(); // StringBuilder to accumulate the results
 
-        // Loop through car models and append each model and its base price to the result
-        for (CarModel model : carModels) {
-            result.append(model.getModelName()).append(" - $").append(model.getModelBasePrice()).append("\n");
+    //Method to list brands by their dealer
+    private void listBrandsByDealer()
+    {
+        textArea.setText("Brands by Dealer:\n");
+
+        List<Dealer> dealers = dbConnection.getDatabaseOperations().getDealers();
+        List<Object[]> brands = dbConnection.getDatabaseOperations().getBrands();
+        List<Object[]> dealerBrands = dbConnection.getDatabaseOperations().getDealerBrands();
+
+
+        for (Dealer dealer: dealers)
+        {
+            //Each dealer is found and displayed
+            textArea.append(dealer.getDealerName() + ": ");
+
+            // list used to store the names to be able to add commas between them later
+            List<String> formattedNames = new ArrayList<>();
+
+            //brands associated with the different dealers are found
+            for(Object[] dealerBrand: dealerBrands)
+            {
+                int brandID = (int) dealerBrand[0];
+                int dealerID  = (int) dealerBrand[1];
+
+                if(dealer.getDealerId() == dealerID)
+                {
+                    for (Object[] brand : brands)
+                    {
+                        if ((int)brand[0] == brandID)
+                        {
+
+                            formattedNames.add((String) brand[1]); //brand name is added to the formattedName list if it is part of that dealership
+
+
+
+                        }
+                    }
+                }
+            }
+            if(!formattedNames.isEmpty())
+            {
+                String formatOutput = String.join(", ", formattedNames); // commas added between all brands, except the last brand in each line
+                textArea.append(formatOutput + "\n");
+            }
         }
+    }
 
-        // Display the results in the text area
-        textArea.setText(result.toString());
+    //Method to list cars alongside their base prices
+    private void listBasePrices()
+    {
+        textArea.setText("Base Prices:\n");
+
+
+        List<CarModel> carModels = dbConnection.getDatabaseOperations().getCarModels();
+
+        // car models and their bases prices are found
+        for (CarModel model : carModels) {
+
+            double formattedPrice = model.getModelBasePrice() * 1.0; //each price is formatted to be a double with one decimal place
+
+            textArea.append(model.getModelName() + " - $"+ formattedPrice + "\n"); //models and their prices are appended with dollar sign and one decimal place
+        }
     }
 
     public static void main(String[] args) {

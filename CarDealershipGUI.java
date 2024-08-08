@@ -3,8 +3,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
 
 // Main class for the Car Dealership GUI
@@ -41,8 +39,6 @@ public class CarDealershipGUI extends JFrame {
 
         // Attach listeners to the buttons
         btnModelsByColor.addActionListener(action);
-
-
 
         btnBrandsByDealer.addActionListener(action);
 
@@ -83,6 +79,8 @@ public class CarDealershipGUI extends JFrame {
     // Method to list car models by their color
     private void listModelsByColor()
     {
+
+        textArea.setText("Models by Color:\n");
         String[] colorsOfInterest = {"red", "green", "blue", "yellow"};
 
 
@@ -113,7 +111,7 @@ public class CarDealershipGUI extends JFrame {
             int modelId = (int) option[1];
             String color = ((String) option[2]).toLowerCase();
 
-            // Thw index for the color is found
+            // The index for the color is found
             int colorIndex = -1;
             for (int i = 0; i < colorsOfInterest.length; i++) {
                 if (color.equals(colorsOfInterest[i])) {
@@ -239,11 +237,7 @@ public class CarDealershipGUI extends JFrame {
         // New instance of DatabaseConnection calls createConnection method to establish a connection
         dbConnection.createConnection();
 
-        // Create an instance of the databaseOperations inner class for this connection.
-        DatabaseConnection.DatabaseOperations databaseOperations = dbConnection.getDatabaseOperations();
-
         // Create an instance of the gui using that connection
-        CarDealershipGUI gui = new CarDealershipGUI(dbConnection);
-        return gui;
+        return new CarDealershipGUI(dbConnection);
     }
 }

@@ -21,7 +21,7 @@ import java.util.List;
         }
 
         // Method createConnection established the connection to the database
-        public Connection createConnection() {
+        public void createConnection() {
             // Try catch in case any error occurs
             try {
                 // As long as the connection doesn't exist or isn't open
@@ -35,8 +35,6 @@ import java.util.List;
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
             }
-            // Established connection to the file is returned
-            return connection;
         }
 
         // Method closes the connection once it is no longer needed
@@ -106,20 +104,23 @@ import java.util.List;
                 // A query to select the needed items from the Models table
                 String query = "SELECT model_id, model_name, model_base_price, brand_id FROM Models";
 
-                // Try to execute the query, using statement to contact the database and resultset to execute and save the results.
+                // Try to execute the query, using statement to contact the database and result set to execute and save the results.
                 try (Statement statement = connection.createStatement();
                      ResultSet resultSet = statement.executeQuery(query)) {
 
                     // As long as there is something in the database left to process
                     while (resultSet.next()) {
-                        // Assign each variable with the appropriate item from the database
-                        int modelId = resultSet.getInt("model_id");
-                        String modelName = resultSet.getString("model_name");
-                        int modelBasePrice = resultSet.getInt("model_base_price");
-                        int brandId = resultSet.getInt("brand_id");
+                        // Create a new instance of the CarModel object with placeholder values.
+                        CarModel carModel = new CarModel(0, null, 0,0);
+
+                        // Use setters to assign each CarModel parameter with the appropriate item from the database
+                        carModel.setModelId(resultSet.getInt("model_id"));
+                        carModel.setModelName(resultSet.getString("model_name"));
+                        carModel.setModelBasePrice(resultSet.getInt("model_base_price"));
+                        carModel.setBrandId(resultSet.getInt("brand_id"));
 
                         // Then build a new CarModel object and add it to the arraylist
-                        carModels.add(new CarModel(modelId, modelName, modelBasePrice, brandId));
+                        carModels.add(carModel);
                     }
                     // If an error occurs print out a message
                 } catch (SQLException e) {
@@ -142,12 +143,14 @@ import java.util.List;
 
                     // As long as there is something in the database left to read
                     while (rs.next()) {
-                        // Assign local variables with their appropriate counterparts from the database
-                        int dealerId = rs.getInt("dealer_id");
-                        String dealerName = rs.getString("dealer_name");
+                        // Create a new instance of the dealer object with placeholder values
+                        Dealer dealer = new Dealer(0, null);
+                        // Assign dealer values with their appropriate counterparts from the database using setter methods
+                        dealer.setDealerId(rs.getInt("dealer_id"));
+                        dealer.setDealerName(rs.getString("dealer_name"));
 
                         // Then create a new Dealer object using those variable and add it to the list.
-                        dealers.add(new Dealer(dealerId, dealerName));
+                        dealers.add(dealer);
                     }
                     // If an error occurs print out a message.
                 } catch (SQLException e) {
@@ -229,6 +232,7 @@ import java.util.List;
                 } catch (SQLException e) {
                     System.out.println("Error getting Car_Options: " + e.getMessage());
                 }
+
                 return carOptions;
             }
         }

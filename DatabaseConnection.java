@@ -124,7 +124,7 @@ import java.util.List;
                     }
                     // If an error occurs print out a message
                 } catch (SQLException e) {
-                    System.out.println("Error fetching models: " + e.getMessage());
+                    System.out.println("Error getting models: " + e.getMessage());
                 }
 
                 return carModels;

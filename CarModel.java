@@ -42,11 +42,6 @@ public class CarModel {
         this.modelBasePrice = modelBasePrice;
     }
 
-    // Getter for brand ID
-    public int getBrandId() {
-        return brandId;
-    }
-
     // Setter for brand ID
     public void setBrandId(int brandId) {
         this.brandId = brandId;
